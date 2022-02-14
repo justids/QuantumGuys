@@ -30,42 +30,33 @@ def n_swaps(cnot):
 
     # QHACK #
     ctrl, targ = cnot.wires
-    def find_shortest_path(graph, source, goal): # BFS
+    def find_shortest_path(graph, source, destination): # BFS
         visited = []
         queue = [[source]]
         
-        if source == goal:
+        if source == destination:
             raise BaseException('CNOT not valild!!')
-        # Loop to traverse the graph
-        # with the help of the queue
-        while queue:
+        while queue: # Loop to traverse the graph with the help of the queue
             path = queue.pop(0)
             node = path[-1]
             
-            # Condition to check if the
-            # current node is not visited
-            if node not in visited:
+            if node not in visited: # If node is not visited
                 neighbours = graph[node]
                 
-                # Loop to iterate over the
-                # neighbours of the node
-                for neighbour in neighbours:
+                for neighbour in neighbours: # Iterate over the neighbours of the node
                     new_path = list(path)
                     new_path.append(neighbour)
                     queue.append(new_path)
                     
-                    # Condition to check if the
-                    # neighbour node is the goal
-                    if neighbour == goal:
+                    if neighbour == destination: # if the neighbour node is the destination
                         return new_path
                 visited.append(node)
     
-        # Condition when the nodes
-        # are not connected
+        # If the nodes are not connected
         raise BaseException('Not Connected')
 
-    shortest_path = find_shortest_path(graph=graph, source=ctrl, goal=targ)
-    return 2*(len(shortest_path)-2) # take out source and goal
+    shortest_path = find_shortest_path(graph=graph, source=ctrl, destination=targ)
+    return 2*(len(shortest_path)-2) # take out source and destination
     # QHACK #
 
 

@@ -21,7 +21,7 @@ def switch(oracle):
 
     @qml.qnode(dev)
     def circuit():
-
+        # TODO: Yeah, this is about bernstein-vazirani algorithm (https://qiskit.org/textbook/ch-algorithms/bernstein-vazirani.html)
         # QHACK #
 
         # You are allowed to place operations before and after the oracle without any problem.

@@ -23,6 +23,8 @@ def find_the_car(oracle):
     def circuit1():
         # QHACK #
 
+        # TODO: Yeah, this is about bernstein-vazirani algorithm (https://qiskit.org/textbook/ch-algorithms/bernstein-vazirani.html)
+        
         # QHACK #
         return qml.sample()
 
