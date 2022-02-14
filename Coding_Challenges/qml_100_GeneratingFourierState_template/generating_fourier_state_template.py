@@ -20,7 +20,9 @@ def generating_fourier_state(n_qubits, m):
     """
 
     dev = qml.device("default.qubit", wires=n_qubits)
-
+    target=np.zeros(2**n_qubits)
+    target[m]=1
+    
     @qml.qnode(dev)
     def circuit(angles):
         """This is the quantum circuit that we will use."""
@@ -33,6 +35,11 @@ def generating_fourier_state(n_qubits, m):
 
         # We apply QFT^-1 to return to the computational basis.
         # This will help us to see how well we have done.
+        for w in range(n_qubits):
+            qml.Hadamard(wires=w)
+            qml.RZ(angles[w],wires=w)
+        
+        
         qml.adjoint(qml.QFT)(wires=range(n_qubits))
 
         # We return the probabilities of seeing each basis state.
@@ -44,11 +51,16 @@ def generating_fourier_state(n_qubits, m):
         """
 
         probs = circuit(angles)
+        loss=np.sum(np.power(target-probs,2))
+        
+        return loss
+        
         # QHACK #
 
         # The return error should be smaller when the state m is more likely to be obtained.
 
         # QHACK #
+        
 
     # This subroutine will find the angles that minimize the error function.
     # Do not modify anything from here.
@@ -62,6 +74,7 @@ def generating_fourier_state(n_qubits, m):
         angles = opt.step(error, angles)
         angles = np.clip(opt.step(error, angles), -2 * np.pi, 2 * np.pi)
 
+
     return circuit, angles
 
 
@@ -72,7 +85,7 @@ if __name__ == "__main__":
     m = int(inputs[1])
 
     output = generating_fourier_state(n_qubits, m)
-    output[0](output[1])
+    output[0](output[1]) 
     dev = qml.device("default.qubit", wires=n_qubits)
 
     @qml.qnode(dev)

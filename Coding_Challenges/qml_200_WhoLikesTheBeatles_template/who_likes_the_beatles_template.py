@@ -7,7 +7,7 @@ import pennylane as qml
 
 def distance(A, B):
     """Function that returns the distance between two vectors.
-
+ 
     Args:
         - A (list[int]): person's information: [age, minutes spent watching TV].
         - B (list[int]): person's information: [age, minutes spent watching TV].
@@ -20,9 +20,41 @@ def distance(A, B):
 
     # The Swap test is a method that allows you to calculate |<A|B>|^2 , you could use it to help you.
     # The qml.AmplitudeEmbedding operator could help you too.
+    
 
-    # dev = qml.device("default.qubit", ...
+    # dev = qml.device('default.qubit', wires=3)
     # @qml.qnode(dev)
+    # def circuit(f=None):
+    #     qml.AmplitudeEmbedding(features=f, wires=[1,2], normalize=True)
+    #     qml.Hadamard(wires=0)
+    #     qml.CSWAP(wires=[0,1,2])
+    #     qml.Hadamard(wires=0)
+    #     return qml.probs(wires=0)
+
+    # embedder=[]
+    # embedder.append(A[0])
+    # embedder.append(A[1])
+
+    # embedder.append(B[0])
+    # embedder.append(B[1])
+
+    # print(circuit(f=embedder)[0])
+    # return np.sqrt(2*(1-np.sqrt(2*(circuit(f=embedder)[0]-0.5))))
+
+    dev = qml.device('default.qubit', wires=3)
+    @qml.qnode(dev)
+    def circuit(theta1,theta2):
+        qml.RY(theta1/2,wires=1)
+        qml.RY(theta2/2,wires=2)
+        qml.Hadamard(wires=0)
+        qml.CSWAP(wires=[0,1,2])
+        qml.Hadamard(wires=0)
+        return qml.probs(wires=0)
+    theta1=np.arctan2(A[0],A[1])
+    theta2=np.arctan2(B[0],B[1])
+    
+
+    return np.sqrt(2*(1-np.sqrt(2*(circuit(theta1,theta2)[0]-0.5))))
 
     # QHACK #
 
