@@ -132,7 +132,7 @@ def classify_ising_data(ising_configs, labels):
         weights, bias, _, _ = opt.step(cost, weights, bias, X_batch, Y_batch)
 
        
-    predictions = [np.sign(variational_classifier(weights, bias, x)) for x in ising_configs]
+    predictions = [np.sign(variational_classifier(weights, bias, x)).astype(int) for x in ising_configs]
     
     
 

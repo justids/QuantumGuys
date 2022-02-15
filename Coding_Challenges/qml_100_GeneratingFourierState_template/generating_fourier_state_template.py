@@ -37,7 +37,7 @@ def generating_fourier_state(n_qubits, m):
         # This will help us to see how well we have done.
         for w in range(n_qubits):
             qml.Hadamard(wires=w)
-            qml.RZ(angles[w],wires=w)
+            qml.RZ(angles[w],wires=w) 
         
         
         qml.adjoint(qml.QFT)(wires=range(n_qubits))
