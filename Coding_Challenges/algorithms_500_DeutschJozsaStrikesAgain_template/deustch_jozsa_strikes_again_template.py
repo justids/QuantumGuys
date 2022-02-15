@@ -18,6 +18,71 @@ def deutsch_jozsa(fs):
 
     # QHACK #
 
+    dev = qml.device('default.qubit', wires=8, shots=1)
+    def ctrl_state(index, wires):
+        assert index<=3
+        if index==0:
+            pass
+        elif index==1:
+            qml.PauliX(wires=wires[1])
+        elif index==2:
+            qml.PauliX(wires=wires[0])
+        else:
+            qml.PauliX(wires=wires[0])
+            qml.PauliX(wires=wires[1])
+
+    wires = list(range(3))
+    control_wires = list(range(3, 5))
+    ansatz_wires = list(range(5, 8))
+
+    def multioracle(wires, index=None):
+        qml.PauliX(wires=ansatz_wires[2])
+        [qml.Hadamard(wires=w) for w in ansatz_wires]
+
+        qml.CNOT(wires=[wires[0], control_wires[0]])
+        qml.CNOT(wires=[wires[1], control_wires[1]])
+        
+        if index is None:
+            for i, fn in enumerate(fs):
+                ctrl_state(i, control_wires)
+                def tempf():
+                    fn(ansatz_wires)
+                qml.ctrl(tempf, control=control_wires)()
+                ctrl_state(i, control_wires)
+        else:
+            ctrl_state(index, control_wires)
+            def tempf():
+                fs[index](ansatz_wires)
+            qml.ctrl(tempf, control=control_wires)()
+            ctrl_state(index, control_wires)
+
+        [qml.Hadamard(wires=w) for w in ansatz_wires[:2]]
+        qml.MultiControlledX(control_wires=ansatz_wires[:2], wires=wires[2], control_values='00')
+
+    @qml.qnode(dev)
+    def test_circuit(index):
+        qml.PauliX(wires=wires[2])
+        [qml.Hadamard(wires=w) for w in wires]
+        multioracle(wires, index)
+        [qml.Hadamard(wires=w) for w in wires[:2]]
+        return qml.sample(wires=wires[:2])
+
+    def checker(sample):
+        for s in sample:
+            if s==1:
+                return 'balanced'
+        return 'constant'
+
+    @qml.qnode(dev)
+    def circuit(index):
+        qml.PauliX(wires=wires[2])
+        [qml.Hadamard(wires=w) for w in wires]
+        fs[index](wires)
+        [qml.Hadamard(wires=w) for w in wires[:2]]
+        return qml.sample(wires=wires[:2])
+
+
+    return [(checker(test_circuit(index)), checker(circuit(index))) for index in range(4)], 
     # QHACK #
 
 
