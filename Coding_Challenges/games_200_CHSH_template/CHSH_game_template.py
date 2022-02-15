@@ -16,6 +16,9 @@ def prepare_entangled(alpha, beta):
         - alpha (float): real coefficient of |00>
         - beta (float): real coefficient of |11>
     """
+    theta=2*np.arctan2(beta,alpha)
+    qml.RY(theta,wires=0)
+    qml.CNOT(wires=[0,1])
 
     # QHACK #
 
@@ -40,6 +43,14 @@ def chsh_circuit(theta_A0, theta_A1, theta_B0, theta_B1, x, y, alpha, beta):
     """
 
     prepare_entangled(alpha, beta)
+    if x==0:
+        qml.RY(2*theta_A0,wires=0)
+    else:
+        qml.RY(2*theta_A1,wires=0)
+    if y==0:
+        qml.RY(2*theta_B0+np.pi/2,wires=1)
+    else:
+        qml.RY(2*theta_B1+np.pi/2,wires=1)
 
     # QHACK #
 
@@ -59,6 +70,17 @@ def winning_prob(params, alpha, beta):
     Returns:
         - (float): Probability of winning the game
     """
+    winning=0
+    p=chsh_circuit(params[0],params[1],params[2],params[3],1,1,alpha,beta)
+    winning=winning+p[1]+p[2]
+    p=chsh_circuit(params[0],params[1],params[2],params[3],0,1,alpha,beta)
+    winning=winning+p[0]+p[3]
+    p=chsh_circuit(params[0],params[1],params[2],params[3],1,0,alpha,beta)
+    winning=winning+p[0]+p[3]
+    p=chsh_circuit(params[0],params[1],params[2],params[3],0,0,alpha,beta)
+    winning=winning+p[0]+p[3]
+    
+    return winning/4
 
     # QHACK #
 
@@ -78,14 +100,15 @@ def optimize(alpha, beta):
 
     def cost(params):
         """Define a cost function that only depends on params, given alpha and beta fixed"""
+        return 1-winning_prob(params, alpha, beta)**2
+        
 
     # QHACK #
 
     #Initialize parameters, choose an optimization method and number of steps
-    init_params = 
-    opt =
-    steps =
-
+    init_params = np.zeros(4, requires_grad=True)
+    opt = qml.AdagradOptimizer(stepsize=0.23)
+    steps =300
     # QHACK #
     
     # set the initial parameter values
@@ -95,7 +118,8 @@ def optimize(alpha, beta):
         # update the circuit parameters 
         # QHACK #
 
-        params = 
+        params = opt.step(cost, params)
+        
 
         # QHACK #
 

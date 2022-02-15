@@ -1,8 +1,9 @@
-#! /usr/bin/python3
+
 
 import sys
 from pennylane import numpy as np
 import pennylane as qml
+import time
 
 
 def generating_fourier_state(n_qubits, m):
@@ -20,12 +21,13 @@ def generating_fourier_state(n_qubits, m):
     """
 
     dev = qml.device("default.qubit", wires=n_qubits)
-    target=np.zeros(2**n_qubits)
-    target[m]=1
+    
     
     @qml.qnode(dev)
     def circuit(angles):
         """This is the quantum circuit that we will use."""
+        
+        
 
         # QHACK #
 
@@ -49,6 +51,8 @@ def generating_fourier_state(n_qubits, m):
         """This function will determine, given a set of angles, how well it approximates
         the desired state. Here it will be necessary to call the circuit to work with these results.
         """
+        target=np.zeros(2**n_qubits)
+        target[m]=1
 
         probs = circuit(angles)
         loss=np.sum((target-probs)**2)
@@ -80,6 +84,7 @@ def generating_fourier_state(n_qubits, m):
 
 if __name__ == "__main__":
     # DO NOT MODIFY anything in this code block
+    a=time.time()
     inputs = sys.stdin.read().split(",")
     n_qubits = int(inputs[0])
     m = int(inputs[1])
@@ -97,3 +102,4 @@ if __name__ == "__main__":
         return qml.state()
 
     print(",".join([f"{p.real.round(5)},{p.imag.round(5)}" for p in check_with_arbitrary_state()]))
+    print(time.time()-a)
