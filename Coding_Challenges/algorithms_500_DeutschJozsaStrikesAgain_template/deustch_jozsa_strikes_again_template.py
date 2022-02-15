@@ -18,71 +18,73 @@ def deutsch_jozsa(fs):
 
     # QHACK #
 
-    dev = qml.device('default.qubit', wires=8, shots=1)
-    def ctrl_state(index, wires):
-        assert index<=3
-        if index==0:
-            pass
-        elif index==1:
-            qml.PauliX(wires=wires[1])
-        elif index==2:
-            qml.PauliX(wires=wires[0])
-        else:
+    dev = qml.device('default.qubit', wires=6, shots=1)
+
+    def prep(index, wires):
+        if index == 0:
             qml.PauliX(wires=wires[0])
             qml.PauliX(wires=wires[1])
-
-    wires = list(range(3))
-    control_wires = list(range(3, 5))
-    ansatz_wires = list(range(5, 8))
-
-    def multioracle(wires, index=None):
-        qml.PauliX(wires=ansatz_wires[2])
-        [qml.Hadamard(wires=w) for w in ansatz_wires]
-
-        qml.CNOT(wires=[wires[0], control_wires[0]])
-        qml.CNOT(wires=[wires[1], control_wires[1]])
-        
-        if index is None:
-            for i, fn in enumerate(fs):
-                ctrl_state(i, control_wires)
-                def tempf():
-                    fn(ansatz_wires)
-                qml.ctrl(tempf, control=control_wires)()
-                ctrl_state(i, control_wires)
+        elif index == 1:
+            qml.PauliX(wires=wires[0])
+        elif index == 2:
+            qml.PauliX(wires=wires[1])
         else:
-            ctrl_state(index, control_wires)
-            def tempf():
-                fs[index](ansatz_wires)
-            qml.ctrl(tempf, control=control_wires)()
-            ctrl_state(index, control_wires)
-
-        [qml.Hadamard(wires=w) for w in ansatz_wires[:2]]
-        qml.MultiControlledX(control_wires=ansatz_wires[:2], wires=wires[2], control_values='00')
+            None
 
     @qml.qnode(dev)
-    def test_circuit(index):
-        qml.PauliX(wires=wires[2])
-        [qml.Hadamard(wires=w) for w in wires]
-        multioracle(wires, index)
-        [qml.Hadamard(wires=w) for w in wires[:2]]
-        return qml.sample(wires=wires[:2])
+    def orig_version_DJ(index):
+        qml.PauliX(wires=6)
+        [qml.Hadamard(wires=w) for w in [0, 1, 6]]
 
+        def temp():
+            fs[index](wires=[0, 1, 6])
+        temp()
+
+        [qml.Hadamard(wires=w) for w in [0, 1]]
+        return qml.sample(wires=range(2))
+
+    def multioracle():
+        qml.PauliX(wires=4)
+        [qml.Hadamard(wires=w) for w in range(2, 5)]
+
+        for index in range(len(fs)):
+            prep(index, wires=list(range(2)))
+            def temp():
+                fs[index](wires=range(2, 5))
+            qml.ctrl(temp, control=range(2))()
+            prep(index, wires=list(range(2)))
+
+        [qml.Hadamard(wires=w) for w in range(2, 4)]
+        prep(0, wires=list(range(2, 4)))
+        qml.Toffoli(wires=[2, 3, 5])
+        prep(0, wires=list(range(2, 4)))
+
+    @qml.qnode(dev)
+    def ctrl_version_DJ(index):
+        qml.BasisStatePreparation(basis_state=list(map(int, np.binary_repr(index, width=2))), wires=range(2))
+        multioracle()
+        return qml.sample(wires=range(2))
+
+    @qml.qnode(dev)
+    def DJcircuit():
+        target_wires = [0, 1, 5]
+        qml.PauliX(wires=5)
+        [qml.Hadamard(wires=w) for w in target_wires]
+
+        multioracle()
+
+        [qml.Hadamard(wires=w) for w in range(2)]
+        return qml.sample(wires=range(2))
+
+    
     def checker(sample):
         for s in sample:
             if s==1:
-                return 'balanced'
-        return 'constant'
+                return '2 and 2'
+        return '4 same'
 
-    @qml.qnode(dev)
-    def circuit(index):
-        qml.PauliX(wires=wires[2])
-        [qml.Hadamard(wires=w) for w in wires]
-        fs[index](wires)
-        [qml.Hadamard(wires=w) for w in wires[:2]]
-        return qml.sample(wires=wires[:2])
-
-
-    return [(checker(test_circuit(index)), checker(circuit(index))) for index in range(4)], 
+    # return [(checker(ctrl_version_DJ(index)), checker(orig_version_DJ(index))) for index in range(len(fs))]
+    return checker(DJcircuit())
     # QHACK #
 
 
