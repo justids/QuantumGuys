@@ -28,16 +28,15 @@ def deutsch_jozsa(fs):
             qml.PauliX(wires=wires[0])
         elif index == 2:
             qml.PauliX(wires=wires[1])
-        else:
-            None
 
     @qml.qnode(dev)
     def orig_version_DJ(index):
-        qml.PauliX(wires=6)
-        [qml.Hadamard(wires=w) for w in [0, 1, 6]]
+        qml.PauliX(wires=5)
+        [qml.Hadamard(wires=w) for w in [0, 1, 5]]
 
         def temp():
-            fs[index](wires=[0, 1, 6])
+            fs[index](wires=[0, 1, 5])
+
         temp()
 
         [qml.Hadamard(wires=w) for w in [0, 1]]
@@ -49,8 +48,10 @@ def deutsch_jozsa(fs):
 
         for index in range(len(fs)):
             prep(index, wires=list(range(2)))
+
             def temp():
                 fs[index](wires=range(2, 5))
+
             qml.ctrl(temp, control=range(2))()
             prep(index, wires=list(range(2)))
 
@@ -76,15 +77,14 @@ def deutsch_jozsa(fs):
         [qml.Hadamard(wires=w) for w in range(2)]
         return qml.sample(wires=range(2))
 
-    
     def checker(sample):
         for s in sample:
-            if s==1:
-                return '2 and 2'
-        return '4 same'
+            if s == 1:
+                return 'balanced'
+        return 'constant'
 
-    # return [(checker(ctrl_version_DJ(index)), checker(orig_version_DJ(index))) for index in range(len(fs))]
-    return checker(DJcircuit())
+    return [(checker(ctrl_version_DJ(index)), checker(orig_version_DJ(index))) for index in range(len(fs))]
+    # return checker(DJcircuit())
     # QHACK #
 
 

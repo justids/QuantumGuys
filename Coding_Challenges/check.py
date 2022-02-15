@@ -1,6 +1,6 @@
 import os
 
-CWD = 'Coding_Challenges/algorithms_500_DeutschJozsaStrikesAgain_template'
+CWD = './algorithms_500_DeutschJozsaStrikesAgain_template'
 EXE = 'deustch_jozsa_strikes_again_template.py'
 
 if __name__=="__main__":
