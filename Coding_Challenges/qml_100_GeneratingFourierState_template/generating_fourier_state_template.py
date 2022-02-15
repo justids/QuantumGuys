@@ -51,7 +51,7 @@ def generating_fourier_state(n_qubits, m):
         """
 
         probs = circuit(angles)
-        loss=np.sum(np.power(target-probs,2))
+        loss=np.sum((target-probs)**2)
         
         return loss
         
@@ -96,4 +96,4 @@ if __name__ == "__main__":
             qml.apply(op)
         return qml.state()
 
-    print(",".join([f"{p.round(5)}" for p in check_with_arbitrary_state()]))
+    print(",".join([f"{p.real.round(5)},{p.imag.round(5)}" for p in check_with_arbitrary_state()]))

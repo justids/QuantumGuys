@@ -63,24 +63,78 @@ def classify_ising_data(ising_configs, labels):
 
     num_wires = ising_configs.shape[1] 
     dev = qml.device("default.qubit", wires=num_wires) 
+    def layer(W):
+    
+        qml.Rot(W[0, 0], W[0, 1], W[0, 2], wires=0)
+        qml.Rot(W[1, 0], W[1, 1], W[1, 2], wires=1)
+        qml.Rot(W[2, 0], W[2, 1], W[2, 2], wires=2)
+        qml.Rot(W[3, 0], W[3, 1], W[3, 2], wires=3)
+
+        qml.CNOT(wires=[0, 1])
+        qml.CNOT(wires=[1, 2])
+        qml.CNOT(wires=[2, 3])
+        qml.CNOT(wires=[3, 0])
+        
+        qml.Rot(W[0, 3], W[0, 4], W[0, 5], wires=0)
+        qml.Rot(W[1, 3], W[1, 4], W[1, 5], wires=1)
+        qml.Rot(W[2, 3], W[2, 4], W[2, 5], wires=2)
+        qml.Rot(W[3, 3], W[3, 4], W[3, 5], wires=3)
+
+        qml.CNOT(wires=[0, 1])
+        qml.CNOT(wires=[1, 2])
+        qml.CNOT(wires=[2, 3])
+        qml.CNOT(wires=[3, 0])
+    def statepreparation(x):
+        qml.BasisState(x, wires=[0, 1, 2, 3])
 
     # Define a variational circuit below with your needed arguments and return something meaningful
     @qml.qnode(dev)
-    def circuit(# delete this comment and put arguments here):
+    def circuit(weights, x):
 
+        statepreparation(x)
+
+        for W in weights:
+            layer(W)
+
+        return qml.expval(qml.PauliZ(0))
+    
+    def variational_classifier(weights, bias, x):
+        return circuit(weights, x) + bias
+    
     # Define a cost function below with your needed arguments
-    def cost(# delete this comment and put arguments here):
+    def cost(weights, bias, X, Y):
 
         # QHACK #
         
         # Insert an expression for your model predictions here
-        predictions = 
+        predictions = [variational_classifier(weights, bias, x) for x in X]
+        
 
         # QHACK #
 
         return square_loss(Y, predictions) # DO NOT MODIFY this line
 
     # optimize your circuit here
+    np.random.seed(0)
+    num_qubits = num_wires
+    num_layers = 2
+    weights_init = 0.01 * np.random.randn(num_layers, num_qubits, 6, requires_grad=True)
+    bias_init = np.array(0.0, requires_grad=True)
+    opt = optimize.NesterovMomentumOptimizer(0.2)
+    batch_size =15
+    
+    weights = weights_init
+    bias = bias_init
+    for it in range(80):
+        batch_index = np.random.randint(0, len(ising_configs), (batch_size,))
+        X_batch = ising_configs[batch_index]
+        Y_batch = labels[batch_index]
+        weights, bias, _, _ = opt.step(cost, weights, bias, X_batch, Y_batch)
+
+       
+    predictions = [np.sign(variational_classifier(weights, bias, x)) for x in ising_configs]
+    
+    
 
     # QHACK #
 
