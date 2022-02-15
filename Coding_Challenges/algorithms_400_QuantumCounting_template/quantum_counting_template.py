@@ -19,6 +19,9 @@ def oracle_matrix(indices):
     """
 
     # QHACK #
+    my_array = np.eye(2**4)
+    for i in indices:
+        my_array[i, i] = -1
 
     # QHACK #
 
@@ -56,12 +59,14 @@ def circuit(indices):
 
     # QHACK #
 
-    target_wires =
+    target_wires = list(range(4))
 
-    estimation_wires =
+    estimation_wires = list(range(4, 8))
 
     # Build your circuit here
 
+    [qml.Hadamard(wires=w) for w in target_wires]
+    QuantumPhaseEstimation(grover_operator(indices), target_wires=target_wires, estimation_wires=estimation_wires)
     # QHACK #
 
     return qml.probs(estimation_wires)
@@ -77,7 +82,9 @@ def number_of_solutions(indices):
     """
 
     # QHACK #
-
+    decimal_value = np.argmax(circuit(indices))
+    theta = decimal_value * np.pi/8
+    return 2**4 * np.sin(theta/2)**2
     # QHACK #
 
 def relative_error(indices):
@@ -91,8 +98,9 @@ def relative_error(indices):
     """
 
     # QHACK #
-
-    rel_err = 
+    true_num = len(indices)
+    est_num = number_of_solutions(indices=indices)
+    rel_err = (est_num-true_num)/true_num*100
 
     # QHACK #
 
