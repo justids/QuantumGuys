@@ -20,11 +20,32 @@ def qRAM(thetas):
     # Use this space to create auxiliary functions if you need it.
 
     # QHACK #
+    def flipflop(j):
+            binaryi=np.array([int(i) for i in list(bin(j))[2:]], requires_grad=False)
+            binaryn=np.zeros(3)
+            for i in range(len(binaryi)):
+                binaryn[-(i+1)]=binaryi[-(i+1)]
+            for i in range(3):
+                if binaryn[i]==0:
+                    qml.PauliX(wires=i)
+            U=np.array([[np.cos(thetas[j]/2),-np.sin(thetas[j]/2)]
+                        ,[np.sin(thetas[j]/2), np.cos(thetas[j]/2)]])
+            qml.ControlledQubitUnitary(U, control_wires=[0, 1, 2], wires=3)
+            for i in range(3):
+                if binaryn[i]==0:
+                    qml.PauliX(wires=i)
+            
+                    
 
     dev = qml.device("default.qubit", wires=range(4))
 
     @qml.qnode(dev)
     def circuit():
+        for i in range(3):
+            qml.Hadamard(wires=i)
+        for j in range(len(thetas)):
+            flipflop(j)
+            
 
         # QHACK #
 

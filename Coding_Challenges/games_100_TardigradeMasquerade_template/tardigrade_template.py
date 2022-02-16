@@ -23,8 +23,24 @@ def compute_entanglement(theta):
         was initially present
     """
 
-    dev = qml.device("default.qubit", wires=3)
-
+    dev1 = qml.device("default.qubit", wires=3)
+    @qml.qnode(dev1)
+    def tardigradecircuit(theta):
+        qml.Hadamard(wires=0)
+        qml.CNOT(wires=[0,1])
+        qml.PauliX(wires=1)
+        qml.CRY(theta, wires=[1,2])
+        qml.CNOT(wires=[2,1])
+        return qml.density_matrix([1])
+    dev2= qml.device("default.qubit", wires=3)
+    @qml.qnode(dev2)
+    def circuit():
+        qml.Hadamard(wires=0)
+        qml.CNOT(wires=[0,1])
+        qml.PauliX(wires=1)
+        return qml.density_matrix([1])
+    
+    return  second_renyi_entropy(circuit()),second_renyi_entropy(tardigradecircuit(theta))
     # QHACK #
 
     # QHACK #
