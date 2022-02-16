@@ -18,7 +18,11 @@ def binary_list(m, n):
 
     arr = []
     # QHACK #
-
+    while m > 0:
+        arr.insert(0,m%2)
+        m = m // 2
+    while len(arr) < n:
+        arr.insert(0,0)
     # QHACK #
     return arr
 
@@ -37,7 +41,8 @@ def basis_states(n):
     arr = []
 
     # QHACK #
-
+    for i in range(2**n):
+        arr.append(binary_list(i,n))
     # QHACK #
 
     return arr
@@ -54,9 +59,18 @@ def is_particle_preserving(circuit, n):
     Returns:
         - (bool): True / False according to whether the input circuit preserves the number of particles or not
     """
-
+    ret = True
     # QHACK #
-
+    idx = 0; all_states = basis_states(n)
+    for state in all_states:
+        ptl_in = sum(state)
+        out = circuit(state)
+        for i in range(len(out)):
+            if abs(out[i]) > 1e-9:
+                ptl_out = sum(all_states[i])
+                if ptl_in != ptl_out:
+                    ret = False
+    return ret
     # QHACK #
 
 

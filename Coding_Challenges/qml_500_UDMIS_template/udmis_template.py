@@ -21,25 +21,6 @@ def hamiltonian_coeffs_and_obs(graph):
     obs = []
     coeffs = []
 
-    for i in range(num_vertices):
-        obs.append(qml.PauliZ(i))
-        obs.append(qml.Identity(i))
-        coeffs.append(-0.5)
-        coeffs.append(-0.5)
-    edgepoint=np.where(E==True)
-    x=edgepoint[0]
-    y=edgepoint[0]
-    for i in range(len(x)):
-        obs.append(qml.Identity(wires=x[i])@qml.Identity(wires=y[i]))
-        obs.append(qml.Identity(wires=x[i])@qml.PauliZ(wires=y[i]))
-        obs.append(qml.PauliZ(wires=x[i])@qml.Identity(wires=y[i]))
-        obs.append(qml.PauliZ(wires=x[i])@qml.PauliZ(wires=y[i]))
-        coeffs.append(u/4)
-        coeffs.append(u/4)
-        coeffs.append(u/4)
-        coeffs.append(u/4)
-    
-
     # QHACK #
 
     # create the Hamiltonian coeffs and obs variables here
@@ -75,15 +56,13 @@ def edges(graph):
     return E, np.sum(E, axis=(0, 1))
 
 
-def variational_circuit(params):
+def variational_circuit(params, num_vertices):
     """A variational circuit.
 
     Args:
         - params (np.ndarray): your variational parameters
         - num_vertices (int): The number of vertices in the graph. Also used for number of wires.
     """
-    for i, param in enumerate(params):
-        qml.Rot(param[0],param[1],0,wires=i)
 
     # QHACK #
 
@@ -108,9 +87,8 @@ def train_circuit(num_vertices, H):
     @qml.qnode(dev)
     def cost(params):
         """The energy expectation value of a Hamiltonian"""
-        variational_circuit(params)
+        variational_circuit(params, num_vertices)
         return qml.expval(H)
-    
 
     # QHACK #
 
@@ -118,13 +96,7 @@ def train_circuit(num_vertices, H):
     # change the number of training iterations, `epochs`, if you want to
     # just be aware of the 80s time limit!
 
-    epochs = 300
-    init_params = np.random.random([num_vertices,2], requires_grad=True)
-    opt = qml.AdagradOptimizer(stepsize=0.23)
-    params = init_params
-    
-
-    
+    epochs = 500
 
     # QHACK #
 
@@ -146,7 +118,6 @@ if __name__ == "__main__":
 
     coeffs, obs = hamiltonian_coeffs_and_obs(graph)
     H = qml.Hamiltonian(coeffs, obs)
-
 
     energy_density = train_circuit(num_vertices, H)
     print(f"{energy_density:.6f}")
