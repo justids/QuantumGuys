@@ -1,17 +1,20 @@
-#! /usr/bin/python3
+
 
 import sys
 from pennylane import numpy as np
 import pennylane as qml
+import time
 
 
 def generating_fourier_state(n_qubits, m):
     """Function which, given the number of qubits and an integer m, returns the circuit and the angles that generate the state
     QFT|m> following the above template.
+
     Args:
         - n_qubits (int): number of qubits in the circuit.
         - m (int): basis state that we generate. For example, for 'm = 3' and 'n_qubits = 4'
         we would generate the state QFT|0011> (3 in binary is 11).
+
     Returns:
        - (qml.QNode): circuit used to generate the state.
        - (list[float]): angles that generate the state QFT|m>.
@@ -19,9 +22,12 @@ def generating_fourier_state(n_qubits, m):
 
     dev = qml.device("default.qubit", wires=n_qubits)
     
+    
     @qml.qnode(dev)
     def circuit(angles):
         """This is the quantum circuit that we will use."""
+        
+        
 
         # QHACK #
 
@@ -45,10 +51,13 @@ def generating_fourier_state(n_qubits, m):
         """This function will determine, given a set of angles, how well it approximates
         the desired state. Here it will be necessary to call the circuit to work with these results.
         """
+        target=np.zeros(2**n_qubits)
+        target[m]=1
 
         probs = circuit(angles)
-        ret = np.sum(probs**2)-2*probs[m]+1
-        return ret
+        loss=np.sum((target-probs)**2)
+        
+        return loss
         
         # QHACK #
 
@@ -61,7 +70,7 @@ def generating_fourier_state(n_qubits, m):
     # Do not modify anything from here.
 
     opt = qml.AdamOptimizer(stepsize=0.8)
-    epochs = 2000
+    epochs = 5000
 
     angles = np.zeros(n_qubits, requires_grad=True)
 
@@ -75,6 +84,7 @@ def generating_fourier_state(n_qubits, m):
 
 if __name__ == "__main__":
     # DO NOT MODIFY anything in this code block
+    a=time.time()
     inputs = sys.stdin.read().split(",")
     n_qubits = int(inputs[0])
     m = int(inputs[1])
@@ -92,3 +102,4 @@ if __name__ == "__main__":
         return qml.state()
 
     print(",".join([f"{p.real.round(5)},{p.imag.round(5)}" for p in check_with_arbitrary_state()]))
+    print(time.time()-a)
