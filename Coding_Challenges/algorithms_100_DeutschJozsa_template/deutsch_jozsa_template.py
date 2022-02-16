@@ -22,15 +22,10 @@ def deutsch_jozsa(oracle):
         # QHACK #
 
         # Insert any pre-oracle processing here
-        qml.PauliX(wires=2)
-        for w in range(3):
-            qml.Hadamard(wires=w)
 
         oracle()  # DO NOT MODIFY this line
 
         # Insert any post-oracle processing here
-        for w in range(2):
-            qml.Hadamard(wires=w)
 
         # QHACK #
 
@@ -41,10 +36,6 @@ def deutsch_jozsa(oracle):
     # QHACK #
 
     # From `sample` (a single call to the circuit), determine whether the function is constant or balanced.
-    for s in sample:
-        if s==1:
-            return 'balanced'
-    return 'constant'
 
     # QHACK #
 

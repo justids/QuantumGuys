@@ -16,9 +16,7 @@ def qfunc_adder(m, wires):
     qml.QFT(wires=wires)
 
     # QHACK #
-    phases = m*(1/2)**np.arange(1, 1+len(wires))
-    for n, phase in enumerate(phases):
-        qml.RZ(phase*2*np.pi, wires=n)
+
     # QHACK #
 
     qml.QFT(wires=wires).inv()

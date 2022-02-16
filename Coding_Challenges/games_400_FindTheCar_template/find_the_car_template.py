@@ -22,16 +22,18 @@ def find_the_car(oracle):
     @qml.qnode(dev)
     def circuit1():
         # QHACK #
-
-        # TODO: Yeah, this is about bernstein-vazirani algorithm (https://qiskit.org/textbook/ch-algorithms/bernstein-vazirani.html)
-        
+        qml.Hadamard(wires=[0])
+        oracle()
+        qml.Hadamard(wires=[0])
         # QHACK #
         return qml.sample()
 
     @qml.qnode(dev)
     def circuit2():
         # QHACK #
-
+        qml.Hadamard(wires=[1])
+        oracle()
+        qml.Hadamard(wires=[1])
         # QHACK #
         return qml.sample()
 
@@ -39,9 +41,14 @@ def find_the_car(oracle):
     sol2 = circuit2()
 
     # QHACK #
-
     # process sol1 and sol2 to determine which door the car is behind.
-
+    if sol1[0] == 0:
+        if sol2[1] == 0:
+            return 3
+        return 1
+    if sol2[1] == 0:
+        return 2
+    return 0
     # QHACK #
 
 
