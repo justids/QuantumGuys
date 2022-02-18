@@ -3,7 +3,9 @@ bitmex_candles.csv
 .pyc
 
 trial.py
-*.ipynb
+tiral.ipynb
+
+
 
 # Prerequisites
 *.d
