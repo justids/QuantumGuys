@@ -1,5 +1,5 @@
 import os
-import numpy as np
+from pennylane import numpy as np
 import json
 import math
 from PyAstronomy import pyasl
@@ -98,8 +98,7 @@ def Cal_descriptor(cord,distance_matrix,classic=False,new_parameter=None,classic
     descriptor=np.sum(descriptor,axis=2)
     descript_size=np.sum(descriptor*descriptor.conj(),axis=2)
     descriptor=descriptor/np.sqrt(descript_size[:,:,np.newaxis])
-    print(descriptor.shape)
-    print(descript_size.shape)
+
     return returnangle(descriptor),descript_size
 
 
@@ -130,7 +129,8 @@ def AtomLoader(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,cla
         idx=(np.random.randint(133885,size=numb)+1).astype(str)
         atomloader={}
         for i,x in enumerate(idx):
-            sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[x])
+            
+            sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(x)])
             descriptor,descript_size=Cal_descriptor(
                 cord=sym_bloch_cord,
                 distance_matrix=distance_martix,
@@ -146,7 +146,7 @@ def AtomLoader(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,cla
                                 'ground_energy' : ground_energy,
                                 'descriptor' : descriptor,
                                 'descriptor_size':descript_size,
-                                'atomic_number': qm9[x]['n_atoms']
+                                'atomic_number': qm9[str(x)]['n_atoms']
                                     }
         return atomloader
     
