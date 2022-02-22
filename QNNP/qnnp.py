@@ -51,6 +51,10 @@ class QuantumCicuit:
         return energy
 
 if __name__ == "__main__":
+    from torch.utils.tensorboard import SummaryWriter
+    from tqdm import tqdm
+
+    writer = SummaryWriter()
 
     n_qubits = 2
     depth = 2
@@ -60,19 +64,20 @@ if __name__ == "__main__":
 
     loss_fn = torch.nn.MSELoss()
 
-    opt = torch.optim.Adagrad([parameters], lr=0.01)
+    opt = torch.optim.Adam([parameters], lr=0.001)
 
-    idxlist = [str(x) for x in (np.random.choice(len(qm9), 500) + 1)]
+    idxlist = [str(x) for x in (np.random.choice(len(qm9), 5000) + 1)]
 
-    for i, x in enumerate(idxlist):
+    for n_iter, x in tqdm(enumerate(idxlist), total=len(idxlist)):
         est_energy = qc.run(parameters, idx=x)
         list_eta = parameters[:n_qubits]
         atom_data = AtomLoader(np.array(list_eta.tolist()), idx=[x])
         true_energy = atom_data[x]['ground_energy'][0]
         loss = torch.pow((-atom_data[x]['ground_energy'][0] / 20000 - est_energy) / atom_data[x]['atomic_number'], 2)
-        if i % 10 == 0:
-            print(i, loss.item())
+        writer.add_scalar('Loss/Train', loss.item(), n_iter)
         opt.zero_grad()
         loss.backward()
         opt.step()
+
+    writer.close()
 
