@@ -6,6 +6,11 @@ from PyAstronomy import pyasl
 from multiprocessing import Pool, Process, Queue
 
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
 an = pyasl.AtomicNo()
 
 
@@ -122,8 +127,8 @@ def AtomLoader1(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,cl
                 )
             atomloader[i]={
                                 'ground_energy' : ground_energy,
-                                'descriptor' : descriptor,
-                                'descriptor_size':descript_size,
+                                'descriptor' : torch.tensor(descriptor, requires_grad=True),
+                                'descriptor_size': torch.tensor(descript_size, requires_grad=True),
                                 'atomic_number': qm9[x]['n_atoms']
                                     }
         return atomloader
@@ -146,8 +151,8 @@ def AtomLoader1(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,cl
                 )
             atomloader[i]={
                                 'ground_energy' : ground_energy,
-                                'descriptor' : descriptor,
-                                'descriptor_size':descript_size,
+                                'descriptor' : torch.tensor(descriptor, requires_grad=True),
+                                'descriptor_size': torch.tensor(descript_size, requires_grad=True),
                                 'atomic_number': qm9[str(x)]['n_atoms']
                                     }
         return atomloader
@@ -171,8 +176,8 @@ def AtomLoader2(sampler=None,idx=None,epochs=1,batchs=1,classic=False,new_parame
                 )
             atomloader[i]={
                                 'ground_energy' : ground_energy,
-                                'descriptor' : descriptor,
-                                'descriptor_size':descript_size,
+                                'descriptor' : torch.tensor(descriptor, requires_grad=True),
+                                'descriptor_size':torch.tensor(descript_size, requires_grad=True),
                                 'atomic_number': qm9[x]['n_atoms']
                                     }
         return atomloader
@@ -198,8 +203,8 @@ def AtomLoader2(sampler=None,idx=None,epochs=1,batchs=1,classic=False,new_parame
                     )
                 atomload[j]={
                                     'ground_energy' : ground_energy,
-                                    'descriptor' : descriptor,
-                                    'descriptor_size':descript_size,
+                                    'descriptor' : torch.tensor(descriptor, requires_grad=True),
+                                    'descriptor_size':torch.tensor(descript_size, requires_grad=True),
                                     'atomic_number': qm9[str(idx[k])]['n_atoms']
                                         }
                 k+=1

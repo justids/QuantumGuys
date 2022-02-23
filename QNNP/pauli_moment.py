@@ -36,6 +36,7 @@ def atomicoutput(descript,H):
 
 
 def hamiltonian(parameters,descriptor_size):
+    print(descriptor_size[:,np.newaxis])
     coeff=np.zeros((n_qubit,4))+descriptor_size[:,np.newaxis]
     coeff=coeff.flatten()
     coeff=coeff*parameters
@@ -54,7 +55,7 @@ def hamiltonian(parameters,descriptor_size):
 #         outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
 #     return ((ground_energy-outputs)/n_atom)**2
 
-init_params=np.random.random(n_qubit*4,requires_grad=True)
+init_params=np.random.random(n_qubit*4)#,requires_grad=True)
 opt = qml.AdagradOptimizer(stepsize=0.3)
 params=init_params
 
