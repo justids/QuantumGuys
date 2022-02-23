@@ -149,4 +149,28 @@ def AtomLoader(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,cla
                                 'atomic_number': qm9[x]['n_atoms']
                                     }
         return atomloader
+
+
+def AtomLoader1(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,classic_parameter=None, weigthed=False,cutoff_radius=5, halve=False):
     
+    idx=(np.random.randint(133885,size=133885)+1).astype(str)
+    total=0
+    for i,x in enumerate(idx):
+        
+        sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(x)])
+        descriptor,descript_size=Cal_descriptor(
+            cord=sym_bloch_cord,
+            distance_matrix=distance_martix,
+            classic=classic,
+            new_parameter=new_parameter,
+            classic_parameter=classic_parameter,
+            weigthed=weigthed,
+            atomic_num=atomic_num,
+            cutoff_radius=cutoff_radius,
+            halve=halve
+            )
+        des=np.array([np.sin(descriptor[:,:,0])*np.cos(descriptor[:,:,1]),np.sin(descriptor[:,:,0])*np.sin(descriptor[:,:,1]),np.cos(descriptor[:,:,0])])
+        total=np.sum(des[:,:,np.newaxis,:]*des[:,np.newaxis,:,:])
+    return total
+
+

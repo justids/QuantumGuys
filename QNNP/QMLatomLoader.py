@@ -3,6 +3,8 @@ from pennylane import numpy as np
 import json
 import math
 from PyAstronomy import pyasl
+from multiprocessing import Pool, Process, Queue
+
 
 an = pyasl.AtomicNo()
 
@@ -102,7 +104,7 @@ def Cal_descriptor(cord,distance_matrix,classic=False,new_parameter=None,classic
     return returnangle(descriptor),descript_size
 
 
-def AtomLoader(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,classic_parameter=None, weigthed=False,cutoff_radius=5, halve=False):
+def AtomLoader1(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,classic_parameter=None, weigthed=False,cutoff_radius=5, halve=False):
     if sampler==None:
         atomloader={}
         for i,x in enumerate(idx):
@@ -150,3 +152,88 @@ def AtomLoader(sampler=None,idx=None,numb=1,classic=False,new_parameter=None,cla
                                     }
         return atomloader
     
+
+def AtomLoader2(sampler=None,idx=None,epochs=1,batchs=1,classic=False,new_parameter=None,classic_parameter=None, weigthed=False,cutoff_radius=5, halve=False):
+    if sampler==None:
+        atomloader={}
+        for i,x in enumerate(idx):
+            sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[x.astype(str)])
+            descriptor,descript_size=Cal_descriptor(
+                cord=sym_bloch_cord,
+                distance_matrix=distance_martix,
+                classic=classic,
+                new_parameter=new_parameter,
+                classic_parameter=classic_parameter,
+                weigthed=weigthed,
+                atomic_num=atomic_num,
+                cutoff_radius=cutoff_radius,
+                halve=halve
+                )
+            atomloader[i]={
+                                'ground_energy' : ground_energy,
+                                'descriptor' : descriptor,
+                                'descriptor_size':descript_size,
+                                'atomic_number': qm9[x]['n_atoms']
+                                    }
+        return atomloader
+    if sampler=='random':
+        idx=(np.random.randint(133885,size=epochs*batchs)+1).astype(str)
+        atomloader={}
+        k=0
+        for i in range(epochs):
+            atomload={}
+            for j in range(batchs):
+            
+                sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(idx[k])])
+                descriptor,descript_size=Cal_descriptor(
+                    cord=sym_bloch_cord,
+                    distance_matrix=distance_martix,
+                    classic=classic,
+                    new_parameter=new_parameter,
+                    classic_parameter=classic_parameter,
+                    weigthed=weigthed,
+                    atomic_num=atomic_num,
+                    cutoff_radius=cutoff_radius,
+                    halve=halve
+                    )
+                atomload[j]={
+                                    'ground_energy' : ground_energy,
+                                    'descriptor' : descriptor,
+                                    'descriptor_size':descript_size,
+                                    'atomic_number': qm9[str(idx[k])]['n_atoms']
+                                        }
+                k+=1
+            atomloader[i]=atomload
+        return atomloader
+    
+    
+num_cores = 24
+
+def paraLoader(classic_parameter=None, weigthed=False,cutoff_radius=5):
+    idx=(np.random.randint(133885,size=133885)+1).astype(str)
+    array_split=np.array_split(np.arange(133885)+1,num_cores)
+    total=0
+    def caldot(x,q):
+        out=0
+        for i,y in enumerate(array_split[x]):
+            sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(y)])
+            descriptor,descript_size=Cal_descriptor(
+                cord=sym_bloch_cord,
+                distance_matrix=distance_martix,
+                classic=True,
+                classic_parameter=classic_parameter,
+                weigthed=weigthed,
+                atomic_num=atomic_num,
+                cutoff_radius=cutoff_radius,
+                )
+            des=np.array([np.sin(descriptor[:,:,0])*np.cos(descriptor[:,:,1]),np.sin(descriptor[:,:,0])*np.sin(descriptor[:,:,1]),np.cos(descriptor[:,:,0])])
+            out+=np.sum(des[:,:,np.newaxis,:]*des[:,np.newaxis,:,:])
+        q.put(out)
+    q=Queue()
+    for i in range(num_cores):
+        proc=Process(target=caldot,args=(i,q))
+        proc.start()
+    for i in range(num_cores):
+        total=total+q.get()
+        
+    return total
