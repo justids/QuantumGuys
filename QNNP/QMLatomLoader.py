@@ -80,7 +80,7 @@ def calqubit(theta,phi):
 
 def returnangle(qubit):
     the=2*np.arctan2(np.abs(qubit[:,:,1]),np.real(qubit[:,:,0]))
-    ph=np.arctan2(qubit[:,:,1].imag,qubit[:,:,1].real)
+    ph=np.arctan2(np.imag(qubit[:,:,1]),np.real(qubit[:,:,1]))
     return(np.stack((the,ph),axis=2))
     
 
@@ -98,7 +98,7 @@ def Cal_descriptor(cord,distance_matrix,classic=False,new_parameter=None,classic
         descriptor=calqubit(np.arccos(cord[:,:,2]),np.arctan2(cord[:,:,1],cord[:,:,0]))
         descriptor=descriptor[:,np.newaxis,:,:]*new_parameter[np.newaxis,:,np.newaxis,np.newaxis]
     descriptor=np.sum(descriptor,axis=2)
-    descript_size=np.sum(descriptor*descriptor.conj(),axis=2)
+    descript_size=np.sum(descriptor*np.conj(descriptor),axis=2)
     descriptor=descriptor/np.sqrt(descript_size[:,:,np.newaxis])
 
     return returnangle(descriptor),descript_size
@@ -207,33 +207,55 @@ def AtomLoader2(sampler=None,idx=None,epochs=1,batchs=1,classic=False,new_parame
         return atomloader
     
     
-num_cores = 24
+# num_cores = 24
 
-def paraLoader(classic_parameter=None, weigthed=False,cutoff_radius=5):
-    idx=(np.random.randint(133885,size=133885)+1).astype(str)
-    array_split=np.array_split(np.arange(133885)+1,num_cores)
-    total=0
-    def caldot(x,q):
-        out=0
-        for i,y in enumerate(array_split[x]):
-            sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(y)])
-            descriptor,descript_size=Cal_descriptor(
-                cord=sym_bloch_cord,
-                distance_matrix=distance_martix,
-                classic=True,
-                classic_parameter=classic_parameter,
-                weigthed=weigthed,
-                atomic_num=atomic_num,
-                cutoff_radius=cutoff_radius,
-                )
-            des=np.array([np.sin(descriptor[:,:,0])*np.cos(descriptor[:,:,1]),np.sin(descriptor[:,:,0])*np.sin(descriptor[:,:,1]),np.cos(descriptor[:,:,0])])
-            out+=np.sum(des[:,:,np.newaxis,:]*des[:,np.newaxis,:,:])
-        q.put(out)
-    q=Queue()
-    for i in range(num_cores):
-        proc=Process(target=caldot,args=(i,q))
-        proc.start()
-    for i in range(num_cores):
-        total=total+q.get()
+# def paraLoader(classic_parameter=None, weigthed=False,cutoff_radius=5):
+#     total=0
+#     def caldot(x,q):
+#         out=0
+#         for i,y in enumerate(array_split[x]):
+#             sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(y)])
+#             descriptor,descript_size=Cal_descriptor(
+#                 cord=sym_bloch_cord,
+#                 distance_matrix=distance_martix,
+#                 classic=True,
+#                 classic_parameter=classic_parameter,
+#                 weigthed=weigthed,
+#                 atomic_num=atomic_num,
+#                 cutoff_radius=cutoff_radius,
+#                 )
+#             des=np.array([np.sin(descriptor[:,:,0])*np.cos(descriptor[:,:,1]),np.sin(descriptor[:,:,0])*np.sin(descriptor[:,:,1]),np.cos(descriptor[:,:,0])])
+#             out+=np.sum(des[:,:,np.newaxis,:]*des[:,np.newaxis,:,:])
+#         q.put(out)
+#     q=Queue()
+#     for i in range(num_cores):
+#         proc=Process(target=caldot,args=(i,q))
+#         proc.start()
+#     for i in range(num_cores):
+#         total=total+q.get()
         
-    return total
+#     return total
+
+
+def paraoptim(batchs=10,classic_parameter=None, weigthed=False,cutoff_radius=5):
+    idx=(np.random.randint(133885,size=batchs)+1).astype(str)
+    total=0
+    for i,y in enumerate(idx):
+        sym_bloch_cord, distance_martix, atomic_num, ground_energy=Set_center(qm9[str(y)])
+        descriptor,descript_size=Cal_descriptor(
+                    cord=sym_bloch_cord,
+                    distance_matrix=distance_martix,
+                    classic=True,
+                    new_parameter=None,
+                    classic_parameter=classic_parameter,
+                    weigthed=weigthed,
+                    atomic_num=atomic_num,
+                    cutoff_radius=cutoff_radius,
+                    halve=False
+                    )
+        
+        des=np.stack((np.sin(descriptor[:,:,0])*np.cos(descriptor[:,:,1]),np.sin(descriptor[:,:,0])*np.sin(descriptor[:,:,1]),np.cos(descriptor[:,:,0])),axis=2)
+        total+=np.mean(np.sum(des[:,:,np.newaxis,:]*des[:,np.newaxis,:,:],axis=3))
+
+        
+    return total/batchs
