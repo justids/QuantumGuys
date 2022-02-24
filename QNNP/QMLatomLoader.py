@@ -203,8 +203,12 @@ def AtomLoader2(sampler=None,idx=None,epochs=1,batchs=1,classic=False,new_parame
                                     'atomic_number': qm9[str(idx[k])]['n_atoms']
                                         }
                 k+=1
+            
             atomloader[i]=atomload
-        return atomloader
+        if epochs==1:
+            return atomload
+        else: 
+            return atomloader
     
     
 # num_cores = 24
@@ -253,7 +257,6 @@ def paraoptim(batchs=10,classic_parameter=None, weigthed=False,cutoff_radius=5):
                     cutoff_radius=cutoff_radius,
                     halve=False
                     )
-        
         des=np.stack((np.sin(descriptor[:,:,0])*np.cos(descriptor[:,:,1]),np.sin(descriptor[:,:,0])*np.sin(descriptor[:,:,1]),np.cos(descriptor[:,:,0])),axis=2)
         total+=np.mean(np.sum(des[:,:,np.newaxis,:]*des[:,np.newaxis,:,:],axis=3))
 
