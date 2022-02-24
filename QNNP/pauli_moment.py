@@ -3,28 +3,53 @@ import pennylane as qml
 from pennylane import numpy as np
 from QMLatomLoader import *
 from tqdm import tqdm
+import json
+
+
+
+
+
+epochs=2000
+batchs=32
+
+n_qubit=1
+radius=10
+
+init_desparams=np.abs(np.random.random((n_qubit,2),requires_grad=True))
+desopt = qml.AdagradOptimizer(stepsize=1)
+desparams=init_desparams
+batch=64
+
+def descost(paras):
+    parass=np.abs(paras)
+    return paraoptim(batchs=batch,classic_parameter=parass, weigthed=True,cutoff_radius=radius)
+
+
+# for i in tqdm(range(300)):
+#     desparams=desopt.step(descost,desparams)
+#     desparams=np.abs(desparams)
+# desparams,descostout=desopt.step_and_cost(descost,desparams)
+# desparams=np.abs(desparams)
+para=np.array(
+    [[radius, 0],
+]
+)
+para.requires_grad=False
+print(para)
+
+
+# para=np.array([[0,0.5],
+#                [0.1,1],
+#                [1,5]])
 
 
 
 
 
 
-epochs=1000
-batchs=20
 
 
-para=np.array([[0,0.5],
-               [0.1,1],
-               [1,5]])
-
-n_qubit=para.shape[0]
-
-
-
-
-
-
-dev = qml.device("default.qubit", wires=para.shape[0])
+dev = qml.device("default.qubit", wires=n_qubit)
 
 @qml.qnode(dev)
 def atomicoutput(descript,H):
@@ -55,10 +80,10 @@ def hamiltonian(parameters,descriptor_size):
 #     return ((ground_energy-outputs)/n_atom)**2
 
 init_params=np.random.random(n_qubit*4,requires_grad=True)
-opt = qml.AdagradOptimizer(stepsize=0.3)
+opt = qml.AdagradOptimizer(stepsize=2)
 params=init_params
-
-
+params.requires_grad=True
+print(params)
 losslist=[]
 if batchs==1:
     loadatom=AtomLoader1(
@@ -66,7 +91,8 @@ if batchs==1:
         numb=epochs,
         classic=True,
         classic_parameter=para,
-        weigthed=True
+        weigthed=True,
+        cutoff_radius=radius
         )
     for i in tqdm(range(epochs)):
         ground_energy=loadatom[i]['ground_energy']
@@ -98,7 +124,8 @@ else:
         batchs=batchs,
         classic=True,
         classic_parameter=para,
-        weigthed=True
+        weigthed=True,
+        cutoff_radius=radius
         )
     for i in tqdm(range(epochs)):
         def losses(param):
@@ -122,8 +149,17 @@ else:
             params,loss=opt.step_and_cost(losses,params)
             print(loss)
             losslist.append(loss)
-            p=np.array(losslist)
-            print(p)
+
         
         else:
             params=opt.step(losses,params)        
+losslist=np.array(losslist)
+print(para)
+print(losslist)
+print(params)
+paradict={}
+paradict["descriptor_para"]=para
+paradict["hamiltoninan_para"]=params
+paradict["loss"]=losslist
+with open('paradict.json','w') as fp:
+    json.dump(paradict,fp)
