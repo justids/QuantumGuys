@@ -105,86 +105,87 @@ def hamiltonian(parameters,descriptor_size):
 #         outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
 #     return ((ground_energy-outputs)/n_atom)**2
 
-init_params=torch.rand(n_qubit*4, requires_grad = True)
+if __name__=='__main__':
+    init_params=torch.rand(n_qubit*4, requires_grad = True)
 
-#opt = qml.AdagradOptimizer(stepsize=0.3)
-params=init_params
-opt = optim.Adagrad([params], lr=0.3)
+    #opt = qml.AdagradOptimizer(stepsize=0.3)
+    params=init_params
+    opt = optim.Adagrad([params], lr=0.3)
 
-losslist=[]
-if batchs==1:
-    loadatom=AtomLoader1(
-        sampler='random',
-        numb=epochs,
-        classic=True,
-        classic_parameter=para,
-        weigthed=True
-        )
-    for i in tqdm(range(epochs)):
-        ground_energy=loadatom[i]['ground_energy']
-        descriptor=loadatom[i]['descriptor']
-        descript_sizes=loadatom[i]['descriptor_size']
-        n_atom=loadatom[i]['atomic_number']
-        descriptor.requires_grad=False
-        descript_sizes.requires_grad=False
-        def losses(param):    
-            outputs=0
-            for n in range(n_atom):     
-                outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
-            return torch.tensor(np.sqrt(((ground_energy-outputs)/n_atom)**2))
-        
-        def closure(pt=False):
-            opt.zero_grad()
-            loss = losses(params)
-            loss.requires_grad_(True)
-            loss.backward()
-            return loss
-    
-        if i%10==0:
-            opt.step(closure)
-            loss = losses(params).item()
-            losslist.append(loss)
-            print(losslist) 
-        else:
-            opt.step(closure)
-else:
-    loadatom=AtomLoader2(
-        sampler='random',
-        epochs=epochs,
-        batchs=batchs,
-        classic=True,
-        classic_parameter=para,
-        weigthed=True
-        )
-    for i in tqdm(range(epochs)):
-        def losses(param):
-            loss=0
-            x=loadatom[i]
-            for j in range(batchs):
-                ground_energy=x[j]['ground_energy']
-                descriptor=x[j]['descriptor']
-                descript_sizes=x[j]['descriptor_size']
-                n_atom=x[j]['atomic_number']
-                descriptor.requires_grad=False
-                descript_sizes.requires_grad=False
-                out=0
-                for n in range(n_atom):     
-                    out+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
-                loss+=np.sqrt(((ground_energy-out)/n_atom)**2)
-            return torch.abs(torch.tensor(loss/batchs))
-        
-        def closure():
-            opt.zero_grad()
-            loss = losses(params)
-            loss.requires_grad_(True)
-            loss.backward()
-            return loss
-        
-        if i%10==0:
-            opt.step(closure)
-            loss = losses(params).item()
-            losslist.append(loss)
-            print(losslist)        
-        else:
-            opt.step(closure)       
-     
+    losslist=[]
+    if batchs==1:
+        loadatom=AtomLoader1(
+            sampler='random',
+            numb=epochs,
+            classic=True,
+            classic_parameter=para,
+            weigthed=True
+            )
+        for i in tqdm(range(epochs)):
+            ground_energy=loadatom[i]['ground_energy']
+            descriptor=loadatom[i]['descriptor']
+            descript_sizes=loadatom[i]['descriptor_size']
+            n_atom=loadatom[i]['atomic_number']
+            descriptor.requires_grad=False
+            descript_sizes.requires_grad=False
+            def losses(param):
+                outputs=0
+                for n in range(n_atom):
+                    outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
+                return torch.tensor(np.sqrt(((ground_energy-outputs)/n_atom)**2))
+
+            def closure(pt=False):
+                opt.zero_grad()
+                loss = losses(params)
+                loss.requires_grad_(True)
+                loss.backward()
+                return loss
+
+            if i%10==0:
+                opt.step(closure)
+                loss = losses(params).item()
+                losslist.append(loss)
+                print(losslist)
+            else:
+                opt.step(closure)
+    else:
+        loadatom=AtomLoader2(
+            sampler='random',
+            epochs=epochs,
+            batchs=batchs,
+            classic=True,
+            classic_parameter=para,
+            weigthed=True
+            )
+        for i in tqdm(range(epochs)):
+            def losses(param):
+                loss=0
+                x=loadatom[i]
+                for j in range(batchs):
+                    ground_energy=x[j]['ground_energy']
+                    descriptor=x[j]['descriptor']
+                    descript_sizes=x[j]['descriptor_size']
+                    n_atom=x[j]['atomic_number']
+                    descriptor.requires_grad=False
+                    descript_sizes.requires_grad=False
+                    out=0
+                    for n in range(n_atom):
+                        out+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
+                    loss+=np.sqrt(((ground_energy-out)/n_atom)**2)
+                return torch.abs(torch.tensor(loss/batchs))
+
+            def closure():
+                opt.zero_grad()
+                loss = losses(params)
+                loss.requires_grad_(True)
+                loss.backward()
+                return loss
+
+            if i%10==0:
+                opt.step(closure)
+                loss = losses(params).item()
+                losslist.append(loss)
+                print(losslist)
+            else:
+                opt.step(closure)
+
