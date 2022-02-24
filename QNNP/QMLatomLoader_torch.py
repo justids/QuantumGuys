@@ -44,7 +44,7 @@ def rotation_matrix(raxis='z', theta=0):
 
 
 def Set_center(molecule, set_axis=False):
-    cord = torch.from_numpy(np.array(molecule["coordinates"])[:, 1:].astype('float'))
+    cord = torch.from_numpy(np.array(molecule["coordinates"])[:, 1:].astype('float32'))
     atomic_num = torch.zeros(len(cord[:, 0]))
     for i in range(len(cord[:, 0])):  # 원자 개수 n
         atomic_num[i] = an.getAtomicNo(molecule["coordinates"][i][0])
@@ -92,7 +92,7 @@ def returnangle(qubit):
     return (torch.stack((the, ph), axis=2))
 
 
-def Cal_descriptor(cord, distance_matrix, classic=False, new_parameter=None, classic_parameter=None, weigthed=False,
+def Cal_descriptor(cord, distance_matrix, classic=False, desnet=None, classic_parameter=None, weigthed=False,
                    atomic_num=None, cutoff_radius=5, halve=False):
     if classic:
         descriptor = calqubit(torch.arccos(cord[:, :, 2]), torch.atan2(cord[:, :, 1], cord[:, :, 0])) * Cutoff_function(
@@ -107,7 +107,7 @@ def Cal_descriptor(cord, distance_matrix, classic=False, new_parameter=None, cla
             descriptor = descriptor * atomic_weight[:, None, :, None]
     else:
         descriptor = calqubit(torch.arccos(cord[:, :, 2]), torch.atan2(cord[:, :, 1], cord[:, :, 0]))
-        descriptor = descriptor[:, None, :, :] * new_parameter[None, :, None, None]
+        descriptor = descriptor[:, None, :, :] * desnet(distance_matrix, atomic_num)[None, :, None, None]
     descriptor = torch.sum(descriptor, axis=2)
     descript_size = torch.sum(descriptor * descriptor.conj(), axis=2)
     descriptor = descriptor / torch.sqrt(descript_size[:, :, None])
@@ -115,7 +115,7 @@ def Cal_descriptor(cord, distance_matrix, classic=False, new_parameter=None, cla
     return returnangle(descriptor), descript_size
 
 
-def AtomLoader1(sampler=None, idx=None, numb=1, classic=False, new_parameter=None, classic_parameter=None,
+def AtomLoader1(sampler=None, idx=None, numb=1, classic=False, desnet=None, classic_parameter=None,
                 weigthed=False, cutoff_radius=5, halve=False):
     if sampler is None:
         atomloader = {}
@@ -125,7 +125,7 @@ def AtomLoader1(sampler=None, idx=None, numb=1, classic=False, new_parameter=Non
                 cord=sym_bloch_cord,
                 distance_matrix=distance_martix,
                 classic=classic,
-                new_parameter=new_parameter,
+                desnet=desnet,
                 classic_parameter=classic_parameter,
                 weigthed=weigthed,
                 atomic_num=atomic_num,
@@ -148,7 +148,7 @@ def AtomLoader1(sampler=None, idx=None, numb=1, classic=False, new_parameter=Non
                 cord=sym_bloch_cord,
                 distance_matrix=distance_martix,
                 classic=classic,
-                new_parameter=new_parameter,
+                desnet=desnet,
                 classic_parameter=classic_parameter,
                 weigthed=weigthed,
                 atomic_num=atomic_num,
@@ -164,7 +164,7 @@ def AtomLoader1(sampler=None, idx=None, numb=1, classic=False, new_parameter=Non
         return atomloader
 
 
-def AtomLoader2(sampler=None, idx=None, epochs=1, batchs=1, classic=False, new_parameter=None, classic_parameter=None,
+def AtomLoader2(sampler=None, idx=None, epochs=1, batchs=1, classic=False, desnet=None, classic_parameter=None,
                 weigthed=False, cutoff_radius=5, halve=False):
     if sampler is None:
         atomloader = {}
@@ -174,7 +174,7 @@ def AtomLoader2(sampler=None, idx=None, epochs=1, batchs=1, classic=False, new_p
                 cord=sym_bloch_cord,
                 distance_matrix=distance_martix,
                 classic=classic,
-                new_parameter=new_parameter,
+                desnet=desnet,
                 classic_parameter=classic_parameter,
                 weigthed=weigthed,
                 atomic_num=atomic_num,
@@ -200,7 +200,7 @@ def AtomLoader2(sampler=None, idx=None, epochs=1, batchs=1, classic=False, new_p
                     cord=sym_bloch_cord,
                     distance_matrix=distance_martix,
                     classic=classic,
-                    new_parameter=new_parameter,
+                    desnet=desnet,
                     classic_parameter=classic_parameter,
                     weigthed=weigthed,
                     atomic_num=atomic_num,
@@ -209,8 +209,8 @@ def AtomLoader2(sampler=None, idx=None, epochs=1, batchs=1, classic=False, new_p
                 )
                 atomload[j] = {
                     'ground_energy': ground_energy,
-                    'descriptor': torch.tensor(descriptor, requires_grad=True),
-                    'descriptor_size': torch.tensor(descript_size, requires_grad=True),
+                    'descriptor': descriptor,
+                    'descriptor_size': descript_size,
                     'atomic_number': qm9[str(idx[k].item())]['n_atoms']
                 }
                 k += 1
