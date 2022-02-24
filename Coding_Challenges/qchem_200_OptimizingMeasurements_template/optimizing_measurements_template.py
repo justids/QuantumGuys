@@ -17,10 +17,7 @@ def check_simplification(op1, op2):
     """
 
     # QHACK
-    for i in range(len(op1)):
-        if op1[i] != "I" and op2[i] != "I" and op1[i] != op2[i]:
-            return False
-    return True
+
     # QHACK
 
 
@@ -38,11 +35,7 @@ def join_operators(op1, op2):
     """
 
     # QHACK
-    ret = op1
-    for i in range(len(op1)):
-        if ret[i] == "I":
-            ret[i] = op2[i]
-    return ret
+
     # QHACK
 
 
@@ -85,12 +78,7 @@ def compression_ratio(obs_hamiltonian, final_solution):
     """
 
     # QHACK
-    cnt_in = 0; cnt_out = 0
-    for el in obs_hamiltonian:
-        cnt_in = cnt_in + len(el)
-    for el in final_solution:
-        cnt_out = cnt_out + len(el)
-    return (1 - cnt_out/cnt_in)
+
     # QHACK
 
 

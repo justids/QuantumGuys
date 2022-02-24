@@ -16,10 +16,7 @@ def givens_rotations(a, b, c, d):
     """
 
     # QHACK #
-    th2 = -2*np.arctan(c/b); tmp=np.cos(th2/2)
-    th1 = -2*np.arcsin(b/tmp); tmp2 = np.cos(th1/2)
-    th3 = -2*np.arctan(d/a)
-    return [th1,th2,th3]
+
     # QHACK #
 
 

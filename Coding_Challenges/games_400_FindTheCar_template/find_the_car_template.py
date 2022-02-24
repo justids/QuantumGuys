@@ -22,23 +22,51 @@ def find_the_car(oracle):
     @qml.qnode(dev)
     def circuit1():
         # QHACK #
+<<<<<<< HEAD
+        qml.Hadamard(wires=0)
+        qml.Hadamard(wires=1)
+        qml.PauliX(wires=0)
+       
+        oracle()
+        qml.Hadamard(wires=0)
+        qml.Hadamard(wires=1)
+        qml.PauliX(wires=0)
+
+        # TODO: Yeah, this is about bernstein-vazirani algorithm (https://qiskit.org/textbook/ch-algorithms/bernstein-vazirani.html)
+        
+=======
         qml.Hadamard(wires=[0])
         oracle()
         qml.Hadamard(wires=[0])
+>>>>>>> 14361838fef348b28dfdb279ba93b61ceadc6c96
         # QHACK #
         return qml.sample()
 
     @qml.qnode(dev)
     def circuit2():
         # QHACK #
+<<<<<<< HEAD
+        
+        
+        oracle()
+        qml.RX(np.pi/4,wires = 0)
+        
+
+=======
         qml.Hadamard(wires=[1])
         oracle()
         qml.Hadamard(wires=[1])
+>>>>>>> 14361838fef348b28dfdb279ba93b61ceadc6c96
         # QHACK #
         return qml.sample()
 
     sol1 = circuit1()
     sol2 = circuit2()
+    print(sol1)
+    print(sol2)
+    
+    # if (sol1==[0,1,0]) and (sol2==[1,1,1]):
+    #     return 0
 
     # QHACK #
     # process sol1 and sol2 to determine which door the car is behind.
@@ -56,17 +84,17 @@ if __name__ == "__main__":
     # DO NOT MODIFY anything in this code block
     inputs = sys.stdin.read().split(",")
     numbers = [int(i) for i in inputs]
-
-    def oracle():
-        if numbers[0] == 1:
-            qml.PauliX(wires=0)
-        if numbers[1] == 1:
-            qml.PauliX(wires=1)
-        qml.Toffoli(wires=[0, 1, "sol"])
-        if numbers[0] == 1:
-            qml.PauliX(wires=0)
-        if numbers[1] == 1:
-            qml.PauliX(wires=1)
-
-    output = find_the_car(oracle)
-    print(f"{output}")
+    
+    for numbers in ([0,0],[0,1],[1,0],[1,1]):
+        def oracle():
+            if numbers[0] == 1:
+                qml.PauliX(wires=0)
+            if numbers[1] == 1:
+                qml.PauliX(wires=1)
+            qml.Toffoli(wires=[0, 1, "sol"])
+            if numbers[0] == 1:
+                qml.PauliX(wires=0)
+            if numbers[1] == 1:
+                qml.PauliX(wires=1)
+        output = find_the_car(oracle)
+    # print(f"{output}")
