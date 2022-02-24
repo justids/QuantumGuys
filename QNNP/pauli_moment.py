@@ -1,9 +1,8 @@
 import sys
 import pennylane as qml
-# import numpy as np
-from pennylane import numpy as np
 from QMLatomLoader import *
 from tqdm import tqdm
+import torch
 from torch.utils.tensorboard import SummaryWriter
 
 epochs = 1000
@@ -70,13 +69,14 @@ class NeuralNet:
         else:
             raise TypeError('Invalid type of activation function')
 
-    def initialize_parameters(self):
+    def initial_parameters(self):
         # initialize parameters (weight, bias)
-        parameters = []
+        weights = []
+        biases = []
         for i in range(len(self.shape)-1):
-            parameters.append((np.random.random(size=(self.shape[i], self.shape[i+1])), np.random.random(size=self.shape[i])))
-
-        return parameters
+            weights.append(self.generate_wt(self.shape[i], self.shape[i+1]))
+            biases.append(self.generate_b(self.shape[i+1]))
+        return weights, biases
 
 
     # activation function
@@ -94,84 +94,43 @@ class NeuralNet:
     # 1 hidden layer (1, 5)
     # 1 output layer(3, 3)
 
-    def forward(self, x, parameters):
+    def forward(self, x, weights, biases):
         """
         Args:
             x: input
-            parameters: tuple of parameters
+            weights, biases: parameters
 
         Returns:
         """
-
-
-    def f_forward(self, x, w1, w2):
-        # hidden
-        z1 = x.dot(w1)  # input from layer 1
-        a1 = self.sigmoid(z1)  # out put of layer 2
-
-        # Output layer
-        z2 = a1.dot(w2)  # input of out layer
-        a2 = self.sigmoid(z2)  # output of out layer
-        return a2
+        for l in range(len(self.shape)-1):
+            x = x.dot(weights[l])+biases[l]
+        return x
 
     # initializing the weights randomly
-    def generate_wt(self, x, y):
+    @staticmethod
+    def generate_wt(x, y):
         l = []
         for i in range(x * y):
             l.append(np.random.randn())
-        return (np.array(l).reshape(x, y))
+        return np.array(l).reshape(x, y)
 
-    # for loss we will be using mean square error(MSE)
-    def loss(self, out, Y):
-        s = (np.square(out - Y))
-        s = np.sum(s) / len(y)
-        return (s)
+    @staticmethod
+    def generate_b(x):
+        l = []
+        for i in range(x):
+            l.append(np.random.randn())
+        return np.array(l)
 
-    # Back propagation of error
-    def back_prop(self, x, y, w1, w2, alpha):
-
-        # hidden layer
-        z1 = x.dot(w1)  # input from layer 1
-        a1 = self.sigmoid(z1)  # output of layer 2
-
-        # Output layer
-        z2 = a1.dot(w2)  # input of out layer
-        a2 = self.sigmoid(z2)  # output of out layer
-        # error in output layer
-        d2 = (a2 - y)
-        d1 = np.multiply((w2.dot((d2.transpose()))).transpose(),
-                         (np.multiply(a1, 1 - a1)))
-
-        # Gradient for w1 and w2
-        w1_adj = x.transpose().dot(d1)
-        w2_adj = a1.transpose().dot(d2)
-
-        # Updating parameters
-        w1 = w1 - (alpha * (w1_adj))
-        w2 = w2 - (alpha * (w2_adj))
-
-        return (w1, w2)
-
-    def train(self, x, Y, w1, w2, alpha=0.01, epoch=10):
-        acc = []
-        losss = []
-        for j in range(epoch):
-            l = []
-            for i in range(len(x)):
-                out = self.f_forward(x[i], w1, w2)
-                l.append((loss(out, Y[i])))
-                w1, w2 = self.back_prop(x[i], y[i], w1, w2, alpha)
-            print("epochs:", j + 1, "======== acc:", (1 - (sum(l) / len(x))) * 100)
-            acc.append((1 - (sum(l) / len(x))) * 100)
-            losss.append(sum(l) / len(x))
-        return (acc, losss, w1, w2)
+    def __call__(self, *args, **kwargs):
+        return self.forward(*args, **kwargs)
 
 
 if __name__ == '__main__':
     init_params = np.random.random(n_qubit * 4, requires_grad=True)
     opt = qml.AdagradOptimizer(stepsize=0.3)
     params = init_params
-    eta_val = np.random.random(1, requires_grad=True)
+    eta_val = NeuralNet(shape=[3, 4, 4, 1])
+    nn_weights, nn_biases = eta_val.initial_parameters()
 
     loss_list = []
     writer = SummaryWriter()
