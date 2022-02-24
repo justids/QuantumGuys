@@ -92,10 +92,10 @@ def hamiltonian(parameters, descriptor_size):
         if i == 0:
             obs = coeff[0] * obs_term(n_qubit, i, 0)  # I
         else:
-            obs = (obs) + (coeff[4 * i] * obs_term(n_qubit, i, 0))  # I
-        obs = (obs) + (coeff[4 * i + 1] * obs_term(n_qubit, i, 1))  # X
-        obs = (obs) + (coeff[4 * i + 2] * obs_term(n_qubit, i, 2))  # Y
-        obs = (obs) + (coeff[4 * i + 3] * obs_term(n_qubit, i, 3))  # Z
+            obs = obs + (coeff[4 * i] * obs_term(n_qubit, i, 0))  # I
+        obs = obs + (coeff[4 * i + 1] * obs_term(n_qubit, i, 1))  # X
+        obs = obs + (coeff[4 * i + 2] * obs_term(n_qubit, i, 2))  # Y
+        obs = obs + (coeff[4 * i + 3] * obs_term(n_qubit, i, 3))  # Z
     return obs
 
     # def losses(param,ground_energy,descriptor,descript_sizes,n_atom):
