@@ -1,5 +1,5 @@
 import os
-from pennylane import numpy as np
+import numpy as np
 import json
 import math
 from PyAstronomy import pyasl

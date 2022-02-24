@@ -61,6 +61,7 @@ def atomicoutput(descript,H):
 
 
 def hamiltonian(parameters,descriptor_size):
+    print(descriptor_size[:,np.newaxis])
     coeff=np.zeros((n_qubit,4))+descriptor_size[:,np.newaxis]
     coeff=coeff.flatten()
     coeff=coeff*parameters
