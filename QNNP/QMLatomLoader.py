@@ -85,7 +85,7 @@ def calqubit(theta, phi):
 
 
 def returnangle(qubit):
-    the = 2 * np.arctan2(np.abs(qubit[:, :, 1]), np.real(qubit[:, :, 0]))
+    the = 2 * np.arctan2(np.abs(qubit[:, :, 1]), np.abs(qubit[:, :, 0]))
     ph = np.arctan2(np.imag(qubit[:, :, 1]), np.real(qubit[:, :, 1]))
     return (np.stack((the, ph), axis=2))
 

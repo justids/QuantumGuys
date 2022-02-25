@@ -74,7 +74,7 @@ for i in tqdm(range(epochs)):
         ham_para=np.concatenate((ham_para0,param),axis=0)
         x=AtomLoader2(
         sampler='random',
-        epochs=1,
+        epochs=1, 
         batchs=batchs,
         classic=True,
         classic_parameter=des_para,

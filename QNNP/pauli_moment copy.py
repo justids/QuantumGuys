@@ -101,7 +101,7 @@ for i in tqdm(range(epochs)):
         print(loss)
         losslist.append(loss)
 
-    
+     
     else:
         params=opt.step(losses,params)        
 print(losslist)

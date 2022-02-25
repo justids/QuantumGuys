@@ -21,7 +21,7 @@ radius=10
 
 
 des_para0=np.array(
-    [[radius, 0],
+    [[radius, 0], 
 ]
 )
 des_para0.requires_grad=False

@@ -144,7 +144,7 @@ else:
                 descript_sizes=x[j]['descriptor_size']
                 n_atom=x[j]['atomic_number']
                 descriptor.requires_grad=False
-                descript_sizes.requires_grad=False
+                descript_sizes.requires_grad=False 
                 out=0
                 for n in range(n_atom):     
                     out+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
