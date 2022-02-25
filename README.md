@@ -1,11 +1,11 @@
-# SexyQuantumGuys
+# Predictiong Ground-state with Novel Quantum Descriptor of Molecules using QML
 Qhack Open Hackathon (team name: SexyQuantumGuys)
 
 ## Packages
 Pennylane, Qiskit, PyTorch, etc.
 
-## Tutorial
-Refer to [QNNP_Tutorial.ipynb](QNNP_Tutorial.ipynb)
+## Tutorial & Presentation
+Refer to [QNNP_Tutorial.ipynb](QNNP/QNNP_Tutorial.ipynb)
 
 ## Demonstration
 Our main project directory is [QNNP](QNNP).

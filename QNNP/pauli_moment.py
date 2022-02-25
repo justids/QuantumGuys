@@ -50,8 +50,8 @@ def AWS_provider(n_wires, qpu='sv1'):
     return dev_remote
 
 
-# dev = qml.device("default.qubit", wires=n_qubit)
-dev = AWS_provider(n_qubit, qpu='Aspen-M-1')
+dev = qml.device("default.qubit", wires=n_qubit)
+# dev = AWS_provider(n_qubit, qpu='Aspen-M-1')
 
 
 @qml.qnode(dev)
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     params = init_params
     params.requires_grad = True
     print(params)
-    losslist = []
 
+    losslist = []
     if batchs == 1:
         loadatom = AtomLoader1(
             sampler='random',
