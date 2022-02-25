@@ -137,7 +137,7 @@ if __name__ == '__main__':
             def closure(pt=False):
                 opt.zero_grad()
                 loss = losses(params)
-                loss.requires_grad_(True)
+                # loss.requires_grad_(True) # TODO: is this right?
                 loss.backward()
                 return loss
 
@@ -179,7 +179,7 @@ if __name__ == '__main__':
             def closure():
                 opt.zero_grad()
                 loss = losses(params)
-                loss.requires_grad_(True)
+                # loss.requires_grad_(True) # TODO: is this right?
                 loss.backward()
                 return loss
 

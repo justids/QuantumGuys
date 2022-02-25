@@ -97,8 +97,10 @@ def Cal_descriptor(cord, distance_matrix, classic=False, new_parameter=None, cla
     if classic:
         descriptor = calqubit(torch.arccos(cord[:, :, 2]), torch.atan2(cord[:, :, 1], cord[:, :, 0])) * Cutoff_function(
             distance_matrix[:, :, None], cutoff_radius=cutoff_radius)
-        descriptor = descriptor[:, None, :, :] * torch.exp(-classic_parameter[None, :, None, None, 0] * torch.pow(
-            distance_matrix[:, None, :, None] - classic_parameter[None, :, None, None, 1], 2))
+        descriptor = descriptor[:, None, :, :] * torch.exp(
+            -torch.from_numpy(classic_parameter[None, :, None, None, 0]) * torch.pow(
+                distance_matrix[:, None, :, None] - classic_parameter[None, :, None, None, 1], 2)
+        )
         if weigthed:
             atomic_weight = torch.zeros((len(atomic_num), len(atomic_num)))
             for i in range(len(atomic_num)):
@@ -209,8 +211,8 @@ def AtomLoader2(sampler=None, idx=None, epochs=1, batchs=1, classic=False, new_p
                 )
                 atomload[j] = {
                     'ground_energy': ground_energy,
-                    'descriptor': torch.tensor(descriptor, requires_grad=True),
-                    'descriptor_size': torch.tensor(descript_size, requires_grad=True),
+                    'descriptor': descriptor.clone().detach().requires_grad_(True),
+                    'descriptor_size': descript_size.clone().detach().requires_grad_(True),
                     'atomic_number': qm9[str(idx[k].item())]['n_atoms']
                 }
                 k += 1
