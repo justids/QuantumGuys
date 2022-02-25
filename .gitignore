@@ -44,4 +44,5 @@ tiral.ipynb
 *.Identifier
 =======
 .DS_Store
+.idea
 >>>>>>> 14361838fef348b28dfdb279ba93b61ceadc6c96
