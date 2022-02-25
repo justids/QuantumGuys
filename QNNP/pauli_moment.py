@@ -1,7 +1,6 @@
-import sys
+from QMLatomLoader import *
 import pennylane as qml
 from pennylane import numpy as np
-from QMLatomLoader import *
 from tqdm import tqdm
 import json
 
