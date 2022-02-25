@@ -35,7 +35,7 @@ class QuantumCicuit:
 
         def entangler(params):
             # params: (L, n_qubits) tensor like
-            weight = params.reshape((int(len(params)/self.n_qubits), self.n_qubits))
+            weight = params.reshape((int(len(params) / self.n_qubits), self.n_qubits))
             qml.BasicEntanglerLayers(weights=weight, wires=range(self.n_qubits))
 
         @qml.qnode(self.dev, interface='torch')
@@ -50,6 +50,7 @@ class QuantumCicuit:
 
         return energy
 
+
 if __name__ == "__main__":
     from torch.utils.tensorboard import SummaryWriter
     from tqdm import tqdm
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     depth = 2
     dev = qml.device('default.qubit', wires=n_qubits, shots=2 ** 13)
     qc = QuantumCicuit(n_qubits=n_qubits, dev=dev)
-    parameters = torch.rand(2*n_qubits*depth, requires_grad=True)
+    parameters = torch.rand(2 * n_qubits * depth, requires_grad=True)
 
     loss_fn = torch.nn.MSELoss()
 
@@ -80,4 +81,3 @@ if __name__ == "__main__":
         opt.step()
 
     writer.close()
-
