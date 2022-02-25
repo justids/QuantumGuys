@@ -15,21 +15,7 @@ batchs=32
 n_qubit=1
 radius=10
 
-init_desparams=np.abs(np.random.random((n_qubit,2),requires_grad=True))
-desopt = qml.AdagradOptimizer(stepsize=1)
-desparams=init_desparams
-batch=64
 
-def descost(paras):
-    parass=np.abs(paras)
-    return paraoptim(batchs=batch,classic_parameter=parass, weigthed=True,cutoff_radius=radius)
-
-
-# for i in tqdm(range(300)):
-#     desparams=desopt.step(descost,desparams)
-#     desparams=np.abs(desparams)
-# desparams,descostout=desopt.step_and_cost(descost,desparams)
-# desparams=np.abs(desparams)
 para=np.array(
     [[radius, 0],
 ]
