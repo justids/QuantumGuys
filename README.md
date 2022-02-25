@@ -19,4 +19,5 @@ you can adjust size of batch, epochs, and number of qubit used by changing globa
 
 ## Method
 PennyLane [pauli_moment.py](QNNP/pauli_moment.py)
+'''
 Qiskit    [pauli_moment-qiskit.py](QNNP/pauli_moment-qiskit.py)
