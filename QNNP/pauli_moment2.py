@@ -1,3 +1,6 @@
+
+
+
 import sys
 import pennylane as qml
 from pennylane import numpy as np
@@ -9,21 +12,21 @@ import numpy
 
 
 
-epochs=2000
-batchs=8
+epochs=1000
+batchs=32
 
-n_qubit=3
-radius=5
-
-
-
-# para=np.array([[0,0.5],
-#                [0.1,1],
-#                [1,5]])
+n_qubit=2
+radius=10
 
 
 
-
+des_para0=np.array(
+    [[radius, 0],
+]
+)
+des_para0.requires_grad=False
+ham_para0=np.array([-0.18460532, -4.87518843, -2.76178594, -0.48570543])
+ham_para0.requires_grad=False
 
 
 
@@ -58,17 +61,18 @@ def hamiltonian(parameters,descriptor_size):
 #         outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
 #     return ((ground_energy-outputs)/n_atom)**2
 
-init_params=np.random.random(n_qubit*6,requires_grad=True)
+init_params=np.random.random(6,requires_grad=True)
 # opt = qml.AdagradOptimizer(stepsize=2)
-opt = qml.AdamOptimizer(stepsize=0.3)
+opt = qml.AdamOptimizer(stepsize=0.5)
 params=init_params
 losslist=[]
 
 
+
 for i in tqdm(range(epochs)):
     def losses(param):
-        des_para=param[:2*n_qubit].reshape((n_qubit,2))
-        ham_para=param[2*n_qubit:]
+        des_para=np.stack((des_para0,np.abs(param[:2].reshape((1,2)))),axis=1)[0]
+        ham_para=np.concatenate((ham_para0,param[2:]),axis=0)
         x=AtomLoader2(
         sampler='random',
         epochs=1,
@@ -106,3 +110,7 @@ paradict["hamiltoninan_para"]=[x for i,x in enumerate(params)]
 paradict["loss"]=losslist
 with open('paradict.json','w') as fp:
     json.dump(paradict,fp)
+
+
+
+

@@ -9,10 +9,10 @@ import json
 
 
 
-epochs=2000
+epochs=1000
 batchs=32
 
-n_qubit=1
+n_qubit=6
 radius=10
 
 init_desparams=np.abs(np.random.random((n_qubit,2),requires_grad=True))
@@ -32,6 +32,11 @@ def descost(paras):
 # desparams=np.abs(desparams)
 para=np.array(
     [[radius, 0],
+     [radius, 1],
+     [radius, 2],
+     [radius, 3],
+     [radius, 4],
+     [radius, 5]
 ]
 )
 para.requires_grad=False
@@ -80,7 +85,7 @@ def hamiltonian(parameters,descriptor_size):
 #     return ((ground_energy-outputs)/n_atom)**2
 
 init_params=np.random.random(n_qubit*4,requires_grad=True)
-opt = qml.AdagradOptimizer(stepsize=2)
+opt = qml.AdagradOptimizer(stepsize=1)
 params=init_params
 params.requires_grad=True
 print(params)
@@ -92,7 +97,8 @@ if batchs==1:
         classic=True,
         classic_parameter=para,
         weigthed=True,
-        cutoff_radius=radius
+        cutoff_radius=radius,
+        set_axis=True
         )
     for i in tqdm(range(epochs)):
         ground_energy=loadatom[i]['ground_energy']
@@ -125,7 +131,8 @@ else:
         classic=True,
         classic_parameter=para,
         weigthed=True,
-        cutoff_radius=radius
+        cutoff_radius=radius,
+        set_axis=True
         )
     for i in tqdm(range(epochs)):
         def losses(param):
@@ -148,6 +155,7 @@ else:
         
             params,loss=opt.step_and_cost(losses,params)
             print(loss)
+            print(params)
             losslist.append(loss)
 
         

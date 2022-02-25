@@ -1,47 +1,32 @@
+
+
+
 import sys
 import pennylane as qml
 from pennylane import numpy as np
 from QMLatomLoader import *
 from tqdm import tqdm
 import json
+import numpy
 
 
 
 
+epochs=1000
+batchs=32
 
-epochs=500
-batchs=20
-
-n_qubit=6
+n_qubit=2
 radius=10
 
-init_desparams=np.abs(np.random.random((n_qubit,2),requires_grad=True))
-desopt = qml.AdagradOptimizer(stepsize=1)
-desparams=init_desparams
-batch=64
-
-def descost(paras):
-    parass=np.abs(paras)
-    return paraoptim(batchs=batch,classic_parameter=parass, weigthed=True,cutoff_radius=radius)
 
 
-for i in tqdm(range(300)):
-    desparams=desopt.step(descost,desparams)
-    desparams=np.abs(desparams)
-desparams,descostout=desopt.step_and_cost(descost,desparams)
-desparams=np.abs(desparams)
-para=desparams
-para.requires_grad=False
-print(para)
-print(descostout)
-
-# para=np.array([[0,0.5],
-#                [0.1,1],
-#                [1,5]])
-
-
-
-
+des_para0=np.array(
+    [[radius, 0],
+]
+)
+des_para0.requires_grad=False
+ham_para0=np.array([-0.34384843, -0.287176,    0.64158966,  6.52923578])
+ham_para0.requires_grad=False
 
 
 
@@ -76,87 +61,57 @@ def hamiltonian(parameters,descriptor_size):
 #         outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
 #     return ((ground_energy-outputs)/n_atom)**2
 
-init_params=np.random.random(n_qubit*4,requires_grad=True)
-opt = qml.AdagradOptimizer(stepsize=1)
+init_params=np.random.random(6,requires_grad=True)
+# opt = qml.AdagradOptimizer(stepsize=2)
+opt = qml.AdamOptimizer(stepsize=0.5)
 params=init_params
-
-
 losslist=[]
-if batchs==1:
-    loadatom=AtomLoader1(
+
+
+
+for i in tqdm(range(epochs)):
+    def losses(param):
+        des_para=np.stack((des_para0,np.abs(param[:2].reshape((1,2)))),axis=1)[0]
+        ham_para=np.concatenate((ham_para0,param[2:]),axis=0)
+        x=AtomLoader2(
         sampler='random',
-        numb=epochs,
-        classic=True,
-        classic_parameter=para,
-        weigthed=True,
-        cutoff_radius=radius
-        )
-    for i in tqdm(range(epochs)):
-        ground_energy=loadatom[i]['ground_energy']
-        descriptor=loadatom[i]['descriptor']
-        descript_sizes=loadatom[i]['descriptor_size']
-        n_atom=loadatom[i]['atomic_number']
-        descriptor.requires_grad=False
-        descript_sizes.requires_grad=False
-        def losses(param):    
-            outputs=0
-            for n in range(n_atom):     
-                outputs+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
-            return np.sqrt(((ground_energy-outputs)/n_atom)**2)
-        
-            
-    
-        
-        if i%10==0:
-            # print(opt.step_and_cost(losses,params,ground_energy,descriptor,descript_sizes,n_atom))
-            params,loss=opt.step_and_cost(losses,params)
-            print(loss)
-        
-        else:
-            params=opt.step(losses,params)
-else:
-    loadatom=AtomLoader2(
-        sampler='random',
-        epochs=epochs,
+        epochs=1,
         batchs=batchs,
         classic=True,
-        classic_parameter=para,
+        classic_parameter=des_para,
         weigthed=True,
-        cutoff_radius=radius
+        cutoff_radius=radius,
+        set_axis=True
         )
-    for i in tqdm(range(epochs)):
-        def losses(param):
-            loss=0
-            x=loadatom[i]
-            for j in range(batchs):
-                ground_energy=x[j]['ground_energy']
-                descriptor=x[j]['descriptor']
-                descript_sizes=x[j]['descriptor_size']
-                n_atom=x[j]['atomic_number']
-                descriptor.requires_grad=False
-                descript_sizes.requires_grad=False
-                out=0
-                for n in range(n_atom):     
-                    out+=atomicoutput(descriptor[n],hamiltonian(param,descript_sizes[n]))
-                loss+=np.sqrt(((ground_energy-out)/n_atom)**2)
-            return loss/batchs
-        
-        if i%10==0:
-        
-            params,loss=opt.step_and_cost(losses,params)
-            print(loss)
-            losslist.append(loss)
+        loss=0
+        for j in range(batchs):
+            ground_energy=x[j]['ground_energy']
+            descriptor=x[j]['descriptor']
+            descript_sizes=x[j]['descriptor_size']
+            n_atom=x[j]['atomic_number']
 
-        
-        else:
-            params=opt.step(losses,params)        
-losslist=np.array(losslist)
-print(para)
+            out=0
+            for n in range(n_atom):     
+                out+=atomicoutput(descriptor[n],hamiltonian(ham_para,descript_sizes[n]))
+            loss+=np.sqrt(((ground_energy-out)/n_atom)**2)
+        return loss/batchs
+    if i%10==0:
+    
+        params,loss=opt.step_and_cost(losses,params)
+        print(loss)
+        losslist.append(loss)
+
+    
+    else:
+        params=opt.step(losses,params)        
 print(losslist)
 print(params)
 paradict={}
-paradict["descriptor_para"]=para
-paradict["hamiltoninan_para"]=params
+paradict["hamiltoninan_para"]=[x for i,x in enumerate(params)]
 paradict["loss"]=losslist
-with open('paradict2.json','w') as fp:
+with open('paradict.json','w') as fp:
     json.dump(paradict,fp)
+
+
+
+

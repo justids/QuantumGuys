@@ -92,7 +92,8 @@ if batchs==1:
         classic=True,
         classic_parameter=para,
         weigthed=True,
-        cutoff_radius=radius
+        cutoff_radius=radius,
+        set_axis=True
         )
     for i in tqdm(range(epochs)):
         ground_energy=loadatom[i]['ground_energy']
@@ -125,7 +126,8 @@ else:
         classic=True,
         classic_parameter=para,
         weigthed=True,
-        cutoff_radius=radius
+        cutoff_radius=radius,
+        set_axis=True
         )
     for i in tqdm(range(epochs)):
         def losses(param):
