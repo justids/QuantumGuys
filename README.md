@@ -15,3 +15,8 @@ python3 ./QNNP/pauli_moment.py
 ```
 you can adjust size of batch, epochs, and number of qubit used by changing global variables;
 `batchs`, `epochs`, `n_qubit`.
+
+
+## Method
+PennyLane [pauli_moment.py](QNNP/pauli_moment.py)
+Qiskit    [pauli_moment-qiskit.py](QNNP/pauli_moment-qiskit.py)
