@@ -16,7 +16,29 @@ def ground_state_VQE(H):
     """
 
     # QHACK #
-
+    dev = qml.device("default.qubit", wires=[0,1,2,3])
+    def circuit(para, wires):
+        qml.BasisState(np.array([1,1,0,0]), wires=wires)
+        qml.DoubleExcitation(para, wires=wires)
+        
+    @qml.qnode(dev)
+    def cost(para):
+        circuit(para, wires=[0,1,2,3])
+        return qml.expval(H)
+    
+    opt = qml.GradientDescentOptimizer(stepsize=0.4)
+    th = np.array(0.0, requires_grad=True)
+    en = [cost(th)]; ang = [th]
+    
+    for n in range(100):
+        th, prev_en = opt.step_and_cost(cost, th)
+        en.append(cost(th)); ang.append(th)
+        if abs(en[-1] - prev_en) < 1e-6:
+            break
+            
+    st = np.zeros(16, dtype=np.complex128)
+    st[12] = np.cos(th/2); st[3] = -np.sin(th/2)
+    return prev_en, st
     # QHACK #
 
 
@@ -33,7 +55,11 @@ def create_H1(ground_state, beta, H):
     """
 
     # QHACK #
-
+    mat = np.zeros((16,16), dtype=np.complex128)
+    for coef, op in zip(H.coeffs, H.ops):
+        mat += coef*qml.utils.expand(op.matrix, op.wires, 4)
+    ret = mat + beta*np.outer(ground_state, ground_state)
+    return qml.Hermitian(ret,wires=[0,1,2,3])
     # QHACK #
 
 
@@ -48,7 +74,27 @@ def excited_state_VQE(H1):
     """
 
     # QHACK #
-
+    dev = qml.device("default.qubit", wires=[0,1,2,3])
+    def circuit(para, wires):
+        qml.BasisState(np.array([0,1,0,1]), wires=wires)
+        qml.DoubleExcitation(para, wires=wires)
+        
+    @qml.qnode(dev)
+    def cost(para):
+        circuit(para, wires=[0,1,2,3])
+        return qml.expval(H1)
+    
+    opt = qml.GradientDescentOptimizer(stepsize=0.4)
+    th = np.array(0.0, requires_grad=True)
+    en = [cost(th)]; ang = [th]
+    
+    for n in range(100):
+        th, prev_en = opt.step_and_cost(cost, th)
+        en.append(cost(th)); ang.append(th)
+        if abs(en[-1] - prev_en) < 1e-6:
+            break
+            
+    return prev_en
     # QHACK #
 
 

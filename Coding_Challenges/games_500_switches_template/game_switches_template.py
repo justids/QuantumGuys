@@ -21,12 +21,18 @@ def switch(oracle):
 
     @qml.qnode(dev)
     def circuit():
-        # TODO: Yeah, this is about bernstein-vazirani algorithm (https://qiskit.org/textbook/ch-algorithms/bernstein-vazirani.html)
-        # QHACK #
 
+        # QHACK #
+        qml.Hadamard(wires=[0])
+        qml.Hadamard(wires=[1])
+        qml.Hadamard(wires=[2])
+        qml.PauliX(wires=["light"])
+        qml.Hadamard(wires=["light"])
         # You are allowed to place operations before and after the oracle without any problem.
         oracle()
-
+        qml.Hadamard(wires=[0])
+        qml.Hadamard(wires=[1])
+        qml.Hadamard(wires=[2])
         # QHACK #
 
         return qml.sample(wires=range(3))
@@ -34,9 +40,12 @@ def switch(oracle):
     sample = circuit()
 
     # QHACK #
-
+    ret = []
+    for i in range(3):
+        if sample[i] == 1:
+            ret.append(i)
     # Process the received sample and return the requested list.
-
+    return ret
     # QHACK #
 
 
